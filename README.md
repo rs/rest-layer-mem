@@ -21,7 +21,8 @@ root.Bind("foo", rest.NewResource(foo, mem.NewHandler(), rest.DefaultConf)
 As local memory access is very fast, this handler is not very useful when it comes to working with latency related issues. This handler allows you to simulate latency by setting an artificial delay:
 
 ```go
-root.Bind("foo", rest.NewResource(foo, mem.NewSlowHandler(5*time.Second), rest.DefaultConf)
+root.Bind("foo", rest.NewResource(foo
+    ?, mem.NewSlowHandler(5*time.Second), rest.DefaultConf)
 ```
 
 With this configuration, the memory handler will pause 5 seconds before processing every request. If the passed `net/context` is canceled during that wait, the handler won't process the request and return the appropriate `rest.Error` as specified in the REST Layer [storage handler implementation doc](https://github.com/rs/rest-layer#data-storage-handler).

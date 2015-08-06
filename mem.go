@@ -38,7 +38,7 @@ func NewSlowHandler(latency time.Duration) *MemoryHandler {
 }
 
 // Insert inserts new items in memory
-func (m *MemoryHandler) Insert(items []*rest.Item, ctx context.Context) (err *rest.Error) {
+func (m *MemoryHandler) Insert(ctx context.Context, items []*rest.Item) (err *rest.Error) {
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
@@ -58,7 +58,7 @@ func (m *MemoryHandler) Insert(items []*rest.Item, ctx context.Context) (err *re
 }
 
 // Update replace an item by a new one in memory
-func (m *MemoryHandler) Update(item *rest.Item, original *rest.Item, ctx context.Context) (err *rest.Error) {
+func (m *MemoryHandler) Update(ctx context.Context, item *rest.Item, original *rest.Item) (err *rest.Error) {
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
@@ -76,7 +76,7 @@ func (m *MemoryHandler) Update(item *rest.Item, original *rest.Item, ctx context
 }
 
 // Delete deletes an item from memory
-func (m *MemoryHandler) Delete(item *rest.Item, ctx context.Context) (err *rest.Error) {
+func (m *MemoryHandler) Delete(ctx context.Context, item *rest.Item) (err *rest.Error) {
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
@@ -94,7 +94,7 @@ func (m *MemoryHandler) Delete(item *rest.Item, ctx context.Context) (err *rest.
 }
 
 // Clear clears all items from the memory store matching the lookup
-func (m *MemoryHandler) Clear(lookup *rest.Lookup, ctx context.Context) (total int, err *rest.Error) {
+func (m *MemoryHandler) Clear(ctx context.Context, lookup *rest.Lookup) (total int, err *rest.Error) {
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
@@ -127,7 +127,7 @@ func (m *MemoryHandler) delete(id interface{}) {
 }
 
 // Find items from memory matching the provided lookup
-func (m *MemoryHandler) Find(lookup *rest.Lookup, page, perPage int, ctx context.Context) (list *rest.ItemList, err *rest.Error) {
+func (m *MemoryHandler) Find(ctx context.Context, lookup *rest.Lookup, page, perPage int) (list *rest.ItemList, err *rest.Error) {
 	m.RLock()
 	defer m.RUnlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
