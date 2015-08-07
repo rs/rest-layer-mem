@@ -66,7 +66,7 @@ func (m *MemoryHandler) Update(ctx context.Context, item *rest.Item, original *r
 		if !found {
 			return rest.NotFoundError
 		}
-		if original.Etag != o.Etag {
+		if original.ETag != o.ETag {
 			return rest.ConflictError
 		}
 		m.items[item.ID] = item
@@ -84,7 +84,7 @@ func (m *MemoryHandler) Delete(ctx context.Context, item *rest.Item) (err *rest.
 		if !found {
 			return rest.NotFoundError
 		}
-		if item.Etag != o.Etag {
+		if item.ETag != o.ETag {
 			return rest.ConflictError
 		}
 		m.delete(item.ID)
@@ -94,13 +94,13 @@ func (m *MemoryHandler) Delete(ctx context.Context, item *rest.Item) (err *rest.
 }
 
 // Clear clears all items from the memory store matching the lookup
-func (m *MemoryHandler) Clear(ctx context.Context, lookup *rest.Lookup) (total int, err *rest.Error) {
+func (m *MemoryHandler) Clear(ctx context.Context, lookup rest.Lookup) (total int, err *rest.Error) {
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
 		for _, id := range m.ids {
 			item := m.items[id]
-			if !lookup.Match(item.Payload) {
+			if !lookup.Filter().Match(item.Payload) {
 				continue
 			}
 			m.delete(item.ID)
@@ -127,7 +127,7 @@ func (m *MemoryHandler) delete(id interface{}) {
 }
 
 // Find items from memory matching the provided lookup
-func (m *MemoryHandler) Find(ctx context.Context, lookup *rest.Lookup, page, perPage int) (list *rest.ItemList, err *rest.Error) {
+func (m *MemoryHandler) Find(ctx context.Context, lookup rest.Lookup, page, perPage int) (list *rest.ItemList, err *rest.Error) {
 	m.RLock()
 	defer m.RUnlock()
 	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
@@ -135,14 +135,14 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *rest.Lookup, page, per
 		// Apply filter
 		for _, id := range m.ids {
 			item := m.items[id]
-			if !lookup.Match(item.Payload) {
+			if !lookup.Filter().Match(item.Payload) {
 				continue
 			}
 			items = append(items, item)
 		}
 		// Apply sort
-		if len(lookup.Sort) > 0 {
-			s := sortableItems{lookup.Sort, items}
+		if len(lookup.Sort()) > 0 {
+			s := sortableItems{lookup.Sort(), items}
 			sort.Sort(s)
 		}
 		// Apply pagination
