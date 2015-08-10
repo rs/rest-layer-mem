@@ -3,13 +3,13 @@ package mem
 import (
 	"time"
 
-	"github.com/rs/rest-layer"
+	"github.com/rs/rest-layer/resource"
 )
 
 // sortableItems is an item slice implementing sort.Interface
 type sortableItems struct {
 	sort  []string
-	items []*rest.Item
+	items []*resource.Item
 }
 
 func (s sortableItems) Len() int {

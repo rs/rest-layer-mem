@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/rest-layer"
+	"github.com/rs/rest-layer/resource"
 	"golang.org/x/net/context"
 )
 
@@ -16,14 +16,14 @@ type MemoryHandler struct {
 	// If latency is set, the handler will introduce an artificial latency on
 	// all operations
 	Latency time.Duration
-	items   map[interface{}]*rest.Item
+	items   map[interface{}]*resource.Item
 	ids     []interface{}
 }
 
 // NewHandler creates an empty memory handler
 func NewHandler() *MemoryHandler {
 	return &MemoryHandler{
-		items: map[interface{}]*rest.Item{},
+		items: map[interface{}]*resource.Item{},
 		ids:   []interface{}{},
 	}
 }
@@ -32,19 +32,19 @@ func NewHandler() *MemoryHandler {
 func NewSlowHandler(latency time.Duration) *MemoryHandler {
 	return &MemoryHandler{
 		Latency: latency,
-		items:   map[interface{}]*rest.Item{},
+		items:   map[interface{}]*resource.Item{},
 		ids:     []interface{}{},
 	}
 }
 
 // Insert inserts new items in memory
-func (m *MemoryHandler) Insert(ctx context.Context, items []*rest.Item) (err *rest.Error) {
+func (m *MemoryHandler) Insert(ctx context.Context, items []*resource.Item) (err error) {
 	m.Lock()
 	defer m.Unlock()
-	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
+	err = handleWithLatency(m.Latency, ctx, func() error {
 		for _, item := range items {
 			if _, found := m.items[item.ID]; found {
-				return rest.ConflictError
+				return resource.ErrConflict
 			}
 		}
 		for _, item := range items {
@@ -58,16 +58,16 @@ func (m *MemoryHandler) Insert(ctx context.Context, items []*rest.Item) (err *re
 }
 
 // Update replace an item by a new one in memory
-func (m *MemoryHandler) Update(ctx context.Context, item *rest.Item, original *rest.Item) (err *rest.Error) {
+func (m *MemoryHandler) Update(ctx context.Context, item *resource.Item, original *resource.Item) (err error) {
 	m.Lock()
 	defer m.Unlock()
-	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
+	err = handleWithLatency(m.Latency, ctx, func() error {
 		o, found := m.items[original.ID]
 		if !found {
-			return rest.NotFoundError
+			return resource.ErrNotFound
 		}
 		if original.ETag != o.ETag {
-			return rest.ConflictError
+			return resource.ErrConflict
 		}
 		m.items[item.ID] = item
 		return nil
@@ -76,16 +76,16 @@ func (m *MemoryHandler) Update(ctx context.Context, item *rest.Item, original *r
 }
 
 // Delete deletes an item from memory
-func (m *MemoryHandler) Delete(ctx context.Context, item *rest.Item) (err *rest.Error) {
+func (m *MemoryHandler) Delete(ctx context.Context, item *resource.Item) (err error) {
 	m.Lock()
 	defer m.Unlock()
-	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
+	err = handleWithLatency(m.Latency, ctx, func() error {
 		o, found := m.items[item.ID]
 		if !found {
-			return rest.NotFoundError
+			return resource.ErrNotFound
 		}
 		if item.ETag != o.ETag {
-			return rest.ConflictError
+			return resource.ErrConflict
 		}
 		m.delete(item.ID)
 		return nil
@@ -94,10 +94,10 @@ func (m *MemoryHandler) Delete(ctx context.Context, item *rest.Item) (err *rest.
 }
 
 // Clear clears all items from the memory store matching the lookup
-func (m *MemoryHandler) Clear(ctx context.Context, lookup rest.Lookup) (total int, err *rest.Error) {
+func (m *MemoryHandler) Clear(ctx context.Context, lookup *resource.Lookup) (total int, err error) {
 	m.Lock()
 	defer m.Unlock()
-	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
+	err = handleWithLatency(m.Latency, ctx, func() error {
 		for _, id := range m.ids {
 			item := m.items[id]
 			if !lookup.Filter().Match(item.Payload) {
@@ -127,11 +127,11 @@ func (m *MemoryHandler) delete(id interface{}) {
 }
 
 // Find items from memory matching the provided lookup
-func (m *MemoryHandler) Find(ctx context.Context, lookup rest.Lookup, page, perPage int) (list *rest.ItemList, err *rest.Error) {
+func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, page, perPage int) (list *resource.ItemList, err error) {
 	m.RLock()
 	defer m.RUnlock()
-	err = handleWithLatency(m.Latency, ctx, func() *rest.Error {
-		items := []*rest.Item{}
+	err = handleWithLatency(m.Latency, ctx, func() error {
+		items := []*resource.Item{}
 		// Apply filter
 		for _, id := range m.ids {
 			item := m.items[id]
@@ -158,7 +158,7 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup rest.Lookup, page, perP
 				end = total
 			}
 		}
-		list = &rest.ItemList{total, page, items[start:end]}
+		list = &resource.ItemList{total, page, items[start:end]}
 		return nil
 	})
 	return list, err
