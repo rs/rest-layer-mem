@@ -16,14 +16,14 @@ type MemoryHandler struct {
 	// If latency is set, the handler will introduce an artificial latency on
 	// all operations
 	Latency time.Duration
-	items   map[interface{}]*resource.Item
+	items   map[interface{}]resource.Item
 	ids     []interface{}
 }
 
 // NewHandler creates an empty memory handler
 func NewHandler() *MemoryHandler {
 	return &MemoryHandler{
-		items: map[interface{}]*resource.Item{},
+		items: map[interface{}]resource.Item{},
 		ids:   []interface{}{},
 	}
 }
@@ -32,7 +32,7 @@ func NewHandler() *MemoryHandler {
 func NewSlowHandler(latency time.Duration) *MemoryHandler {
 	return &MemoryHandler{
 		Latency: latency,
-		items:   map[interface{}]*resource.Item{},
+		items:   map[interface{}]resource.Item{},
 		ids:     []interface{}{},
 	}
 }
@@ -50,7 +50,7 @@ func (m *MemoryHandler) Insert(ctx context.Context, items []*resource.Item) (err
 		for _, item := range items {
 			// Store ids in ordered slice for sorting
 			m.ids = append(m.ids, item.ID)
-			m.items[item.ID] = item
+			m.items[item.ID] = *item
 		}
 		return nil
 	})
@@ -69,7 +69,7 @@ func (m *MemoryHandler) Update(ctx context.Context, item *resource.Item, origina
 		if original.ETag != o.ETag {
 			return resource.ErrConflict
 		}
-		m.items[item.ID] = item
+		m.items[item.ID] = *item
 		return nil
 	})
 	return err
@@ -138,7 +138,7 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, page,
 			if !lookup.Filter().Match(item.Payload) {
 				continue
 			}
-			items = append(items, item)
+			items = append(items, &item)
 		}
 		// Apply sort
 		if len(lookup.Sort()) > 0 {
