@@ -22,6 +22,11 @@ type MemoryHandler struct {
 	ids     []interface{}
 }
 
+func init() {
+	gob.Register(map[string]interface{}{})
+	gob.Register(time.Time{})
+}
+
 // NewHandler creates an empty memory handler
 func NewHandler() *MemoryHandler {
 	return &MemoryHandler{
