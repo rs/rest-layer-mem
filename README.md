@@ -13,7 +13,7 @@ import "github.com/rs/rest-layer-mem"
 ```
 
 ```go
-index.Bind("foo", resource.New(foo, mem.NewHandler(), resource.DefaultConf)
+index.Bind("foo", foo, mem.NewHandler(), resource.DefaultConf)
 ```
 
 ## Latency Simulation
