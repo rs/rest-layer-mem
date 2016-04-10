@@ -11,6 +11,10 @@ import (
 // during the wait, the context error is returned.
 // If latency passed, the handler is executed and it's error output is returned.
 func handleWithLatency(latency time.Duration, ctx context.Context, handler func() error) error {
+	if latency == 0 {
+		return handler()
+	}
+
 	select {
 	case <-ctx.Done():
 		// Monitor context cancellation. cancellation may happend if the client closed the connection
