@@ -80,6 +80,7 @@ func (m *MemoryHandler) delete(id interface{}) {
 			} else {
 				m.ids = append(m.ids[:i], m.ids[i+1:]...)
 			}
+			break
 		}
 	}
 }
@@ -155,7 +156,9 @@ func (m *MemoryHandler) Clear(ctx context.Context, lookup *resource.Lookup) (tot
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() error {
-		for _, id := range m.ids {
+		ids := make([]interface{}, len(m.ids))
+		copy(ids, m.ids)
+		for _, id := range ids {
 			item, _, err := m.fetch(id)
 			if err != nil {
 				return err
