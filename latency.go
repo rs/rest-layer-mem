@@ -1,9 +1,8 @@
 package mem
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // handleWithLatency allows introduction of artificial latency while handling context cancellation.

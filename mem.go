@@ -3,13 +3,13 @@ package mem
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/rs/rest-layer/resource"
-	"golang.org/x/net/context"
 )
 
 // MemoryHandler is an example handler storing data in memory
