@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rs/rest-layer/resource"
 )
 
@@ -206,13 +205,10 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, page,
 				start = offset + start
 			}
 			end = start + perPage
-			logrus.Info(end)
 			if start > total-1 {
-				logrus.Warn(end)
 				start = 0
 				end = 0
 			} else if end > total-1 {
-				logrus.Error(end)
 				end = total
 			}
 		}
