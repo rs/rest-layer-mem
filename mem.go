@@ -210,7 +210,7 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, offse
 				end = total
 			}
 		}
-		list = &resource.ItemList{Total: total, Page: offset, Offset: offset, Items: items[start:end]}
+		list = &resource.ItemList{Total: total, Page: offset, Skip: offset, Items: items[start:end]}
 		return nil
 	})
 	return list, err
