@@ -175,7 +175,7 @@ func (m *MemoryHandler) Clear(ctx context.Context, lookup *resource.Lookup) (tot
 }
 
 // Find items from memory matching the provided lookup
-func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, page, perPage, offset int) (list *resource.ItemList, err error) {
+func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, offset, limit int) (list *resource.ItemList, err error) {
 	m.RLock()
 	defer m.RUnlock()
 	err = handleWithLatency(m.Latency, ctx, func() error {
@@ -198,13 +198,11 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, page,
 		}
 		// Apply pagination
 		total := len(items)
-		start := (page - 1) * perPage
 		end := total
-		if perPage > 0 {
-			if offset > 0 {
-				start = offset + start
-			}
-			end = start + perPage
+		start := offset
+
+		if limit > 0 {
+			end = start + limit
 			if start > total-1 {
 				start = 0
 				end = 0
@@ -212,7 +210,7 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, page,
 				end = total
 			}
 		}
-		list = &resource.ItemList{Total: total, Page: page, Offset: offset, Items: items[start:end]}
+		list = &resource.ItemList{Total: total, Page: offset, Offset: offset, Items: items[start:end]}
 		return nil
 	})
 	return list, err
