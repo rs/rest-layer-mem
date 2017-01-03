@@ -23,6 +23,7 @@ type MemoryHandler struct {
 }
 
 func init() {
+	gob.Register([]interface{}{})
 	gob.Register(map[string]interface{}{})
 	gob.Register(time.Time{})
 }
