@@ -131,6 +131,12 @@ func (m *MemoryHandler) Update(ctx context.Context, item *resource.Item, origina
 	return err
 }
 
+// Replace replace an item by a new one in memory
+func (m *MemoryHandler) Replace(ctx context.Context, item *resource.Item, original *resource.Item) (err error) {
+	err = m.Update(ctx, item, original)
+	return err
+}
+
 // Delete deletes an item from memory
 func (m *MemoryHandler) Delete(ctx context.Context, item *resource.Item) (err error) {
 	m.Lock()
