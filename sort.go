@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/rs/rest-layer/resource"
+	"github.com/rs/rest-layer/schema/query"
 )
 
 // sortableItems is an item slice implementing sort.Interface
 type sortableItems struct {
-	sort  []string
+	sort  query.Sort
 	items []*resource.Item
 }
 
@@ -21,15 +22,15 @@ func (s sortableItems) Swap(i, j int) {
 }
 
 func (s sortableItems) Less(i, j int) bool {
-	for _, exp := range s.sort {
+	for _, field := range s.sort {
 		var field1 interface{}
 		var field2 interface{}
-		if exp[0] == '-' {
-			field1 = s.items[j].GetField(exp[1:])
-			field2 = s.items[i].GetField(exp[1:])
+		if field.Reversed {
+			field1 = s.items[j].GetField(field.Name)
+			field2 = s.items[i].GetField(field.Name)
 		} else {
-			field1 = s.items[i].GetField(exp)
-			field2 = s.items[j].GetField(exp)
+			field1 = s.items[i].GetField(field.Name)
+			field2 = s.items[j].GetField(field.Name)
 		}
 		if field1 == field2 {
 			continue
