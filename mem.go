@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/rs/rest-layer/resource"
+	"github.com/rs/rest-layer/schema/query"
 )
 
 // MemoryHandler is an example handler storing data in memory
@@ -153,7 +154,7 @@ func (m *MemoryHandler) Delete(ctx context.Context, item *resource.Item) (err er
 }
 
 // Clear clears all items from the memory store matching the lookup
-func (m *MemoryHandler) Clear(ctx context.Context, lookup *resource.Lookup) (total int, err error) {
+func (m *MemoryHandler) Clear(ctx context.Context, q *query.Query) (total int, err error) {
 	m.Lock()
 	defer m.Unlock()
 	err = handleWithLatency(m.Latency, ctx, func() error {
@@ -164,7 +165,7 @@ func (m *MemoryHandler) Clear(ctx context.Context, lookup *resource.Lookup) (tot
 			if err != nil {
 				return err
 			}
-			if !lookup.Filter().Match(item.Payload) {
+			if !q.Predicate.Match(item.Payload) {
 				continue
 			}
 			m.delete(item.ID)
@@ -176,7 +177,7 @@ func (m *MemoryHandler) Clear(ctx context.Context, lookup *resource.Lookup) (tot
 }
 
 // Find items from memory matching the provided lookup
-func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, offset, limit int) (list *resource.ItemList, err error) {
+func (m *MemoryHandler) Find(ctx context.Context, q *query.Query) (list *resource.ItemList, err error) {
 	m.RLock()
 	defer m.RUnlock()
 	err = handleWithLatency(m.Latency, ctx, func() error {
@@ -187,23 +188,27 @@ func (m *MemoryHandler) Find(ctx context.Context, lookup *resource.Lookup, offse
 			if err != nil {
 				return err
 			}
-			if !lookup.Filter().Match(item.Payload) {
+			if !q.Predicate.Match(item.Payload) {
 				continue
 			}
 			items = append(items, item)
 		}
 		// Apply sort
-		if len(lookup.Sort()) > 0 {
-			s := sortableItems{lookup.Sort(), items}
+		if len(q.Sort) > 0 {
+			s := sortableItems{q.Sort, items}
 			sort.Sort(s)
 		}
 		// Apply pagination
 		total := len(items)
+		if q.Window == nil {
+			list = &resource.ItemList{Total: total, Items: items}
+			return nil
+		}
 		end := total
-		start := offset
+		start := q.Window.Offset
 
-		if limit > 0 {
-			end = start + limit
+		if q.Window.Limit >= 0 {
+			end = start + q.Window.Limit
 			if end > total-1 {
 				end = total
 			}
