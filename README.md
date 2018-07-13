@@ -1,3 +1,9 @@
+# Deprecation warning
+
+This repository is no longer maintanied. As the memory backend is useful mostly for unit-tests and proto-typing, the code has been merged into the https://github.com/rs/rest-layer Git repository, and can be found at import path `github.com/rs/rest-layer/resource/testing/mem`. This repository is kept only for allowing old imports paths to work.
+
+----
+
 # REST Layer Memory backend [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/rest-layer-mem) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/rest-layer-mem/master/LICENSE) [![build](https://img.shields.io/travis/rs/rest-layer-mem.svg?style=flat)](https://travis-ci.org/rs/rest-layer-mem)
 
 This REST Layer resource storage backend stores data in memory with no persistence. This package is provided as an implementation example and a test backend to be used for testing only.
